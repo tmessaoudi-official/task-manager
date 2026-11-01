@@ -1,0 +1,31 @@
+# Scratch / local
+/var/
+.env
+.env.*
+!.env.example
+*.log
+
+# Editors / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Flutter / Dart (for when the app code lands)
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+coverage/
+
+# Android
+*.jks
+*.keystore
+key.properties
+local.properties
+.gradle/
+
+# iOS / macOS
+Pods/
+*.xcworkspace/xcuserdata/

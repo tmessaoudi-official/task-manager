@@ -1,0 +1,725 @@
+<meta charset="utf-8">
+<title>Holdfast Exploration</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a field manual. Fixed left index on wide screens, one reading column, data blocks allowed to run wider. */
+:root{
+  --bg:#f2f5f4; --surface:#ffffff; --sunk:#e6ecea; --line:#cdd8d5;
+  --fg:#10292c; --muted:#4f6668; --accent:#0d6e66; --accent-soft:#d3ebe7;
+  --signal:#b45309; --signal-soft:#fbe8d0;
+  --ok:#15803d; --warn:#b45309; --bad:#b91c1c;
+  --ok-soft:#dcf2e3; --warn-soft:#fbe8d0; --bad-soft:#f9dede;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1517; --surface:#112124; --sunk:#0e1c1f; --line:#25403f;
+  --fg:#dce8e6; --muted:#93acaa; --accent:#3fc9b8; --accent-soft:#143a37;
+  --signal:#f0a24a; --signal-soft:#3a2a14;
+  --ok:#4ade80; --warn:#f0a24a; --bad:#f87171;
+  --ok-soft:#14321f; --warn-soft:#3a2a14; --bad-soft:#3b1717; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1517; --surface:#112124; --sunk:#0e1c1f; --line:#25403f;
+  --fg:#dce8e6; --muted:#93acaa; --accent:#3fc9b8; --accent-soft:#143a37;
+  --signal:#f0a24a; --signal-soft:#3a2a14;
+  --ok:#4ade80; --warn:#f0a24a; --bad:#f87171;
+  --ok-soft:#14321f; --warn-soft:#3a2a14; --bad-soft:#3b1717; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--f-body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+a{color:var(--accent)} a:focus-visible,button:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-block:40px 80px}
+nav.idx{position:sticky;top:calc(env(safe-area-inset-top, 0px) + 24px);align-self:start;font:13px/1.5 var(--f-mono)}
+nav.idx ol{list-style:none;margin:0;padding:0;display:grid;gap:4px;counter-reset:s}
+nav.idx li{counter-increment:s}
+nav.idx a{color:var(--muted);text-decoration:none;display:block;padding:2px 0}
+nav.idx a::before{content:counter(s,decimal-leading-zero) "  ";color:var(--line)}
+nav.idx a:hover{color:var(--accent)}
+main{min-width:0}
+@media (max-width:860px){.wrap{grid-template-columns:minmax(0,1fr);gap:24px;padding-block:24px 64px} nav.idx{position:static} nav.idx ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.4rem,5vw,3.6rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.75rem;font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0;max-width:68ch}
+section{display:grid;gap:18px;padding-block:44px;border-top:1px solid var(--line)}
+section:first-of-type{border-top:0;padding-top:0}
+.eyebrow{font:500 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.lede{font-size:1.15rem;color:var(--fg);max-width:62ch}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-size:.88em}
+code{font-family:var(--f-mono);font-size:.86em;background:var(--sunk);padding:1px 5px;border-radius:4px}
+small.g{font:12px/1.4 var(--f-mono);color:var(--muted)}
+
+/* hero */
+.hero{display:grid;gap:22px}
+.verdict{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.stamp{font:600 13px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;border:2px solid var(--ok);color:var(--ok);border-radius:4px}
+.figs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.fig{background:var(--surface);padding:16px;display:grid;gap:4px;align-content:start}
+.fig b{font:700 1.7rem/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.fig span{font-size:13px;color:var(--muted)}
+@media (max-width:700px){.figs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.oneliner{border-left:3px solid var(--signal);padding:10px 16px;background:var(--surface);border-radius:0 var(--r) var(--r) 0;max-width:none}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font:600 12px/1.3 var(--f-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);background:var(--sunk);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+tr.hl td{background:var(--accent-soft)}
+
+.chip{display:inline-block;font:600 11px/1 var(--f-mono);padding:4px 7px;border-radius:999px;white-space:nowrap;letter-spacing:.03em}
+.c-mvp{background:var(--signal-soft);color:var(--signal)}
+.c-v1{background:var(--accent-soft);color:var(--accent)}
+.c-v2{background:var(--sunk);color:var(--fg);border:1px solid var(--line)}
+.c-later{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+.ok{background:var(--ok-soft);color:var(--ok)} .warn{background:var(--warn-soft);color:var(--warn)} .bad{background:var(--bad-soft);color:var(--bad)}
+
+/* signature features */
+.sig{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.sig article{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:10px;align-content:start}
+.sig .k{font:500 12px/1 var(--f-mono);color:var(--signal)}
+@media (max-width:860px){.sig{grid-template-columns:minmax(0,1fr)}}
+blockquote{margin:0;font:500 1.25rem/1.45 var(--f-display);max-width:60ch;padding-left:16px;border-left:3px solid var(--accent)}
+
+/* filter */
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.filters button{font:500 13px/1 var(--f-mono);padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+
+/* score bars */
+.bars{display:grid;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.bar{display:grid;grid-template-columns:220px minmax(0,1fr) 56px;gap:12px;align-items:center;font-size:14px}
+.bar .track{height:16px;background:var(--sunk);border-radius:3px;position:relative;overflow:hidden}
+.bar .fill{position:absolute;inset:0 auto 0 0;background:var(--muted);border-radius:3px}
+.bar.win .fill{background:var(--accent)}
+.bar .v{font:600 14px var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.axis{display:grid;grid-template-columns:220px minmax(0,1fr) 56px;gap:12px;font:11px var(--f-mono);color:var(--muted)}
+.axis div{display:flex;justify-content:space-between}
+@media (max-width:600px){.bar,.axis{grid-template-columns:110px minmax(0,1fr) 44px;font-size:12px}}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.two > div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:8px;align-content:start;min-width:0}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+ul.tight{margin:0;padding-left:18px;display:grid;gap:6px;max-width:68ch}
+
+/* architecture diagram */
+.arch{overflow-x:auto}
+.archgrid{min-width:760px;display:grid;grid-template-columns:1fr 70px 1fr;gap:0;align-items:stretch}
+.lane{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:14px;display:grid;gap:10px;align-content:start}
+.lane h4{margin:0;font:600 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dev{border:1px solid var(--line);border-radius:4px;padding:10px;display:grid;gap:6px;background:var(--bg)}
+.dev .t{font:700 14px var(--f-display)}
+.boxes{display:flex;flex-wrap:wrap;gap:6px}
+.bx{font:12px/1.3 var(--f-mono);padding:5px 8px;border-radius:3px;background:var(--sunk);border:1px solid var(--line)}
+.bx.core{background:var(--signal-soft);border-color:var(--signal);color:var(--signal)}
+.bx.k{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.wire{display:grid;align-content:center;justify-items:center;gap:6px;font:11px/1.3 var(--f-mono);color:var(--muted);text-align:center;padding:0 4px}
+.wire .ln{width:100%;height:2px;background:var(--accent);position:relative}
+.wire .ln::after{content:"";position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left-color:var(--accent)}
+.wire .ln.back::after{right:auto;left:-1px;border-left-color:transparent;border-right-color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+
+/* reminder flow */
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;counter-reset:f}
+.flow div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;font-size:13px;display:grid;gap:4px;align-content:start;counter-increment:f}
+.flow div::before{content:counter(f);font:700 18px var(--f-display);color:var(--signal)}
+.flow b{font-size:14px}
+@media (max-width:860px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* effort */
+.toggle{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.toggle button{font:500 13px/1 var(--f-mono);padding:9px 14px;border:0;background:var(--surface);color:var(--fg);cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.gantt{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:12px;overflow-x:auto}
+.grow{display:grid;grid-template-columns:190px minmax(520px,1fr);gap:12px;align-items:center;font-size:14px}
+.gtrack{position:relative;height:30px;background:var(--sunk);border-radius:3px}
+.gseg{position:absolute;top:0;bottom:0;border-radius:3px;display:flex;align-items:center;padding:0 8px;font:600 12px var(--f-mono);color:var(--bg);white-space:nowrap;overflow:hidden}
+.gseg.p0{background:var(--muted)} .gseg.p1{background:var(--signal)} .gseg.p2{background:var(--accent)} .gseg.p3{background:var(--fg)} .gseg.p4{background:var(--line);color:var(--fg)}
+.gwhisk{position:absolute;top:50%;height:2px;background:var(--fg);opacity:.35}
+.gaxis{display:grid;grid-template-columns:190px minmax(520px,1fr);gap:12px;font:11px var(--f-mono);color:var(--muted)}
+.gaxis .ticks{position:relative;height:16px}
+.gaxis .ticks span{position:absolute;transform:translateX(-50%)}
+
+/* roadmap */
+.phases{display:grid;gap:14px}
+.phase{display:grid;grid-template-columns:120px minmax(0,1fr);gap:20px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.phase .when{display:grid;gap:4px;align-content:start}
+.phase .when b{font:800 1.6rem/1 var(--f-display)}
+.phase .when span{font:12px/1.4 var(--f-mono);color:var(--muted)}
+.phase.p1{border-left:4px solid var(--signal)}
+.phase .body{display:grid;gap:10px;min-width:0}
+@media (max-width:640px){.phase{grid-template-columns:minmax(0,1fr);gap:10px}}
+details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px}
+details summary{cursor:pointer;font-weight:600}
+details[open] summary{margin-bottom:10px}
+.srcs{columns:2 320px;font:12px/1.6 var(--f-mono);word-break:break-all}
+.srcs h5{font:600 12px var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:10px 0 4px;break-after:avoid}
+.note{font-size:14px;color:var(--muted);max-width:72ch}
+footer{padding-block:32px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:grid;gap:6px}
+@media (prefers-reduced-motion:no-preference){.gseg{transition:left .35s ease,width .35s ease}}
+</style>
+
+<div class="wrap">
+<nav class="idx" aria-label="Sections">
+  <ol>
+    <li><a href="#verdict">Verdict</a></li>
+    <li><a href="#vision">Product vision</a></li>
+    <li><a href="#features">Feature map</a></li>
+    <li><a href="#market">Competitors</a></li>
+    <li><a href="#feasibility">Feasibility</a></li>
+    <li><a href="#framework">Framework</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#stack">Tech stack</a></li>
+    <li><a href="#effort">Effort</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#risks">Risks</a></li>
+    <li><a href="#costs">Costs</a></li>
+    <li><a href="#decide">Your decisions</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<!-- 01 VERDICT -->
+<section id="verdict" class="hero">
+  <div class="eyebrow">Exploration report · 1 November 2026 · working name “Holdfast”</div>
+  <h1>A reminder system that won’t let a commitment slip</h1>
+  <div class="verdict"><span class="stamp">Feasible · no hard blocker for the MVP</span><span class="muted">Android + Ubuntu GNOME 50 Wayland first. iOS, Windows and macOS later, from the same code.</span></div>
+  <p class="lede">Every surface you asked for can be built today: phone reminders, home-screen widgets, a PC tray and global shortcut, calendars and notifications. The difficulty sits in one place, <strong>reminders that always fire</strong>. On Android that needs a native exact-alarm engine that survives Doze, reboots and battery killers. On Linux it needs a resident scheduler, because the OS has no scheduled-notification store.</p>
+  <div class="figs">
+    <div class="fig"><b>~540 h</b><span>personal MVP, likely<br>(range 360–870)</span></div>
+    <div class="fig"><b>~8 mo</b><span>to MVP as a side project<br>at 17.5 h/week (incl. spikes)</span></div>
+    <div class="fig"><b>~4 mo</b><span>to MVP full-time<br>at 35 h/week</span></div>
+    <div class="fig"><b>$0–10/mo</b><span>run cost for you<br>(self-hosted on your Docker stack)</span></div>
+  </div>
+  <p class="oneliner"><strong>Recommended stack:</strong> Flutter 3.47.9 with an in-repo Kotlin module (Glance widgets + AlarmManager engine), a Linux tray daemon with a systemd-user fallback, drift/SQLite synced by self-hosted PowerSync to your existing Postgres 18 + Keycloak, a server-side calendar bridge in Docker, and a local MCP server so Claude Code can manage your tasks.</p>
+  <p class="note">Method: six web-sourced research dives, each followed by an adversarial verifier that re-checked 81 load-bearing claims against primary sources (63 confirmed, 18 corrected, 2 could not be checked), then one synthesis. Evidence grades follow every claim in the Markdown report at <code>docs/research/exploration.md</code>. All effort figures are estimates, not measurements. Facts about your own machine were checked locally: Ubuntu 26.04.1, GNOME Shell 50.1, Wayland, Flutter 3.47.9 pinned in <code>/stack/.env</code>.</p>
+</section>
+
+<!-- 02 VISION -->
+<section id="vision">
+  <div class="eyebrow">Product vision</div>
+  <h2>Capture in one breath, tie it to a real moment, keep it moving until done</h2>
+  <blockquote>“A local-first reminder system that never lets a commitment slip: capture it in one breath, attach it to the real-life moment you’ll act on it, and let an honest, calendar-aware plan, and your AI agents, keep it moving until it’s done.”</blockquote>
+  <div class="sig">
+    <article>
+      <span class="k">Signature 1 · Moments</span>
+      <h3>Cues that won’t let go</h3>
+      <p>Any task can carry a <em>Moment</em>: a time, a place (arrive or leave), a device (the car or your headphones connect), driving start/stop, or a PC event like login or the start of the workday. If you don’t act, the reminder escalates: a gentle ping, then a repeat in a different sound and style, then an opt-in full-screen alarm. When you snooze the same task again and again, it asks “break it down, move it, or drop it?”.</p>
+      <small class="g">Why it works: “when X, do Y” plans raise goal attainment (d ≈ 0.27–0.66), and alerts that vary resist habituation. Bluetooth connect events can wake a killed Android app.</small>
+    </article>
+    <article>
+      <span class="k">Signature 2 · Honest Day</span>
+      <h3>Brain dump → a plan that knows you</h3>
+      <p>Speak or paste a messy paragraph. The AI returns tasks, durations and sub-steps as a <strong>diff you approve</strong>. The planner then builds today around your calendars, using <em>your own</em> estimate-versus-actual history (“you usually take 1.5× on #admin”), and re-flows the day when you slip. A morning plan and an evening shutdown close the loop.</p>
+      <small class="g">Why it works: correcting the planning fallacy with your past data, and concrete plans quiet the nagging of unfinished goals. No competitor found calibrates against personal history.</small>
+    </article>
+    <article>
+      <span class="k">Signature 3 · Agent-native, local-first</span>
+      <h3>Your data, your agents</h3>
+      <p>The data lives in on-device SQLite and works fully offline, with optional end-to-end encryption per project. The backend is your own Docker stack. A <strong>local MCP server</strong> ships with the Ubuntu app so Claude Code can add, query, complete and plan tasks.</p>
+      <small class="g">To be precise: MCP alone is table stakes now, since Todoist and Super Productivity have it. What sets this app apart is the combination of GNOME depth, tested reliability and a private agent interface.</small>
+    </article>
+  </div>
+</section>
+
+<!-- 03 FEATURES -->
+<section id="features">
+  <div class="eyebrow">Feature map</div>
+  <h2>Seven pillars, tagged by release</h2>
+  <p class="muted">MVP = Phase 1 (personal daily driver) · v1 = Phase 2 · v2 = Phase 3 (AI and context) · later = Phase 4+. Filter the table:</p>
+  <div class="filters" role="group" aria-label="Filter features by release">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="mvp" aria-pressed="false">MVP</button>
+    <button type="button" data-f="v1" aria-pressed="false">v1</button>
+    <button type="button" data-f="v2" aria-pressed="false">v2</button>
+    <button type="button" data-f="later" aria-pressed="false">Later</button>
+  </div>
+  <div class="tbl"><table id="feat">
+    <thead><tr><th>Pillar</th><th>Feature</th><th>Release</th><th>Key constraint</th></tr></thead>
+    <tbody>
+      <tr data-t="mvp"><td>Capture</td><td>Natural-language quick-add, French + English, offline (“dentiste mar 15h toutes les 2 semaines #santé !1”)</td><td><span class="chip c-mvp">MVP</span></td><td>chrono_dart is English-only and stale, so this is our own grammar with golden tests</td></tr>
+      <tr data-t="mvp"><td>Capture</td><td>Android share-sheet target, Quick Settings tile, launcher shortcuts, inline reply on notifications</td><td><span class="chip c-mvp">MVP</span></td><td>Launchers show at most 4 shortcuts</td></tr>
+      <tr data-t="mvp"><td>Capture</td><td>Ubuntu global quick-add hotkey + tray + <code>holdfast --quick-add</code> CLI</td><td><span class="chip c-mvp">MVP</span></td><td>GlobalShortcuts portal needs an AppID; a GNOME custom shortcut is the fallback</td></tr>
+      <tr data-t="v1"><td>Capture</td><td>Voice capture with on-device speech recognition</td><td><span class="chip c-v1">v1</span></td><td>Fully offline behaviour not yet verified</td></tr>
+      <tr data-t="v2"><td>Capture</td><td>Brain dump → AI triage, “make it smaller”, screenshot/OCR capture</td><td><span class="chip c-v2">v2</span></td><td>~$0.001 per dump; OCR on-device with ML Kit</td></tr>
+      <tr data-t="later"><td>Capture</td><td>Email-to-task forwarding address</td><td><span class="chip c-later">later</span></td><td>Never Gmail API scopes (they trigger a paid security assessment)</td></tr>
+      <tr data-t="mvp"><td>Organize</td><td>Projects, sub-tasks, tags, priorities, drag ordering</td><td><span class="chip c-mvp">MVP</span></td><td>—</td></tr>
+      <tr data-t="mvp"><td>Organize</td><td>Recurrence: RFC 5545 rules, “repeat after completion”, edit one or all future instances</td><td><span class="chip c-mvp">MVP</span></td><td>Dart <code>rrule</code> is a partial port, so it gets a wrapper and a conformance test corpus</td></tr>
+      <tr data-t="v1"><td>Organize</td><td>Saved filters, search, attachments</td><td><span class="chip c-v1">v1</span></td><td>Attachments in MinIO, lazy download</td></tr>
+      <tr data-t="later"><td>Organize</td><td>Shared lists, households</td><td><span class="chip c-later">later</span></td><td>Needs accounts and permissions</td></tr>
+      <tr data-t="mvp"><td>Remind</td><td><strong>Exact reminders</strong> that survive Doze, reboot, updates and timezone changes, with a reliability self-test</td><td><span class="chip c-mvp">MVP</span></td><td><code>SCHEDULE_EXACT_ALARM</code> (user grant) + <code>setAlarmClock</code></td></tr>
+      <tr data-t="mvp"><td>Remind</td><td>Desktop reminders that fire with the app closed</td><td><span class="chip c-mvp">MVP</span></td><td>Tray daemon + systemd user timer fallback</td></tr>
+      <tr data-t="v1"><td>Remind</td><td>Nag until done: escalating, varied, optional full-screen tier</td><td><span class="chip c-v1">v1</span></td><td>Full-screen needs a user-granted permission</td></tr>
+      <tr data-t="v1"><td>Remind</td><td>Moments v1: car/headphones Bluetooth, driving start/stop, PC login/unlock</td><td><span class="chip c-v1">v1</span></td><td>Activity Recognition needs Play Services</td></tr>
+      <tr data-t="v2"><td>Remind</td><td>Location (geofence) reminders, adaptive snooze</td><td><span class="chip c-v2">v2</span></td><td>100 geofences per app, minutes of latency, background location</td></tr>
+      <tr data-t="mvp"><td>Plan</td><td>Today / Upcoming views</td><td><span class="chip c-mvp">MVP</span></td><td>Calendar overlay arrives in v1</td></tr>
+      <tr data-t="v1"><td>Plan</td><td>Focus timer as an Android Live Update + tray countdown</td><td><span class="chip c-v1">v1</span></td><td>Only a user-started timer qualifies under Android policy</td></tr>
+      <tr data-t="v2"><td>Plan</td><td>Duration calibration, morning plan, shutdown + weekly review</td><td><span class="chip c-v2">v2</span></td><td>Planning-fallacy correction</td></tr>
+      <tr data-t="v2"><td>Plan</td><td>Auto time-blocking + re-plan on slip (proposes, never moves meetings)</td><td><span class="chip c-v2">v2</span></td><td>Deterministic packer, no LLM needed</td></tr>
+      <tr data-t="mvp"><td>Integrate</td><td>Phone ↔ PC sync, offline-first</td><td><span class="chip c-mvp">MVP</span></td><td>PowerSync Open Edition on your Postgres 18</td></tr>
+      <tr data-t="mvp"><td>Integrate</td><td>Local MCP server (stdio) + CLI for Claude Code</td><td><span class="chip c-mvp">MVP</span></td><td>Must target MCP spec 2026-07-28; write tools need confirmation</td></tr>
+      <tr data-t="v1"><td>Integrate</td><td>Two-way calendars: Google events · Microsoft events + To Do tasks · Nextcloud tasks + events · iCloud events</td><td><span class="chip c-v1">v1</span></td><td>Google Tasks can’t carry a time of day; iCloud Reminders unreachable off-Apple</td></tr>
+      <tr data-t="v1"><td>Integrate</td><td>Read phone calendars without OAuth (CalendarContract), JSON/ICS export, Todoist/TickTick import</td><td><span class="chip c-v1">v1</span></td><td>Android only for CalendarContract</td></tr>
+      <tr data-t="v2"><td>Integrate</td><td>Remote MCP with OAuth</td><td><span class="chip c-v2">v2</span></td><td>Dynamic Client Registration is deprecated in MCP 2026-07-28</td></tr>
+      <tr data-t="later"><td>Integrate</td><td>Gemini / Android AppFunctions, Wear OS widgets</td><td><span class="chip c-later">later</span></td><td>AppFunctions is still an experimental preview</td></tr>
+      <tr data-t="v2"><td>Reflect</td><td>Completed log, forgiving routines (no streak shaming), weekly review with estimate accuracy</td><td><span class="chip c-v2">v2</span></td><td>Habits take ~66 days (median) to form</td></tr>
+      <tr data-t="v2"><td>AI</td><td>Three-layer parsing: own grammar → on-device Gemini Nano → cloud small model (opt-in, preview before saving)</td><td><span class="chip c-v2">v2</span></td><td>Gemini Nano structured output is Alpha, so it can’t be the primary parser</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 04 MARKET -->
+<section id="market">
+  <div class="eyebrow">Competitive landscape</div>
+  <h2>Coverage is solved. Reliability, GNOME depth and your own infrastructure are not.</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>App</th><th>Android</th><th>Linux desktop</th><th>Price</th><th>Calendars</th><th>AI / agent</th></tr></thead>
+    <tbody>
+      <tr><td>Todoist</td><td>Yes + Wear</td><td>Official app</td><td class="num">$60/yr</td><td>Google <em>or</em> Outlook, one account, read-only events</td><td>Ramble voice, official MCP</td></tr>
+      <tr><td>TickTick</td><td>Yes</td><td>Listed</td><td class="num">$49.99/yr</td><td>Feed; Google two-way reported</td><td>AI assistant</td></tr>
+      <tr><td>Microsoft To Do</td><td>Yes</td><td>No official app</td><td class="num">Free</td><td>Outlook</td><td>Copilot elsewhere</td></tr>
+      <tr><td>Google Tasks</td><td>Yes</td><td>Web only</td><td class="num">Free</td><td>Inside Google Calendar; API drops the time</td><td>Gemini</td></tr>
+      <tr><td>Sunsama · Akiflow · Motion</td><td>Yes / companion</td><td>Sunsama only</td><td class="num">$17–34/mo</td><td>Google, Outlook</td><td>AI planning, MCP</td></tr>
+      <tr><td>Morgen</td><td>Yes</td><td>Official</td><td class="num">$15/mo</td><td>Google, M365, iCloud, CalDAV; Nextcloud must be <em>publicly reachable</em></td><td>AI planner</td></tr>
+      <tr><td>Tasks.org (OSS)</td><td>Best CalDAV app</td><td>Desktop alpha (KMP)</td><td class="num">Free</td><td>CalDAV, Google Tasks, EteSync</td><td>—</td></tr>
+      <tr><td>Super Productivity (OSS)</td><td>Yes (Capacitor)</td><td>Yes (Electron)</td><td class="num">Free</td><td>Google, CalDAV</td><td>Local MCP</td></tr>
+      <tr><td>Planify · Errands (OSS)</td><td>No</td><td>Native GNOME</td><td class="num">Free</td><td>CalDAV / EDS</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+  <div class="two">
+    <div><h3>The gap Holdfast fills</h3>
+      <ul class="tight">
+        <li><strong>Reminder reliability as a tested guarantee</strong> on Android, with OEM guidance, a self-test and a late-fire log.</li>
+        <li><strong>Native-feeling GNOME Wayland</strong> integration: portal hotkey, tray, reminders with the app closed, a CLI.</li>
+        <li><strong>True multi-provider two-way sync</strong> running on <em>your</em> server, so a home Nextcloud behind NAT works (Morgen can’t do this).</li>
+        <li><strong>Evidence-based cues and nagging</strong> instead of plain time reminders.</li>
+        <li><strong>Local-first data + a private agent interface</strong> at an individual’s price.</li>
+      </ul></div>
+    <div><h3>Market signals worth knowing</h3>
+      <ul class="tight">
+        <li>Clockwise shut down on 2026-03-27 and deleted user data. Planners pivot and close, so export and portability matter.</li>
+        <li>AI planners charge $15–34/month. A €3–4/month “Sync & AI” tier would undercut every one of them.</li>
+        <li>Tasks.org proves Kotlin Multiplatform works for exactly this app class, and its desktop is leaving alpha. It is the closest open-source competitor to watch.</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- 05 FEASIBILITY -->
+<section id="feasibility">
+  <div class="eyebrow">Feasibility by surface</div>
+  <h2>Where the platform says yes, with limits, or no</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Surface</th><th>Verdict</th><th>How it works / the limit</th></tr></thead>
+    <tbody>
+      <tr><td colspan="3"><strong>Android (primary)</strong></td></tr>
+      <tr><td>Exact reminders</td><td><span class="chip warn">yes, with limits</span></td><td>A to-do app must use <code>SCHEDULE_EXACT_ALARM</code> (denied by default on fresh installs, so onboarding asks). <code>USE_EXACT_ALARM</code> is reserved for alarm and calendar apps. A revoke kills the app and cancels its alarms, so everything is re-armed on every start.</td></tr>
+      <tr><td>Doze</td><td><span class="chip ok">yes</span></td><td><code>setAlarmClock()</code> is never deferred; the system leaves Doze for it.</td></tr>
+      <tr><td>Restricted battery bucket</td><td><span class="chip warn">open question</span></td><td>One alarm per day in that bucket. Whether <code>setAlarmClock</code> escapes the cap is undocumented, so Spike S1 tests it.</td></tr>
+      <tr><td>Reboot · update · timezone</td><td><span class="chip ok">yes</span></td><td>Reschedule on boot, package replace, time/zone change and permission grant.</td></tr>
+      <tr><td>OEM battery killers</td><td><span class="chip warn">residual risk</span></td><td>Xiaomi, Huawei, OnePlus and Samsung are the worst. Mitigated with per-OEM deep links, a self-test and a delivery log.</td></tr>
+      <tr><td>Home-screen widgets</td><td><span class="chip ok">yes</span></td><td>Jetpack Glance 1.2 (stable Aug 2026): checkboxes and actions, no text input (a button opens quick-add).</td></tr>
+      <tr><td>Full-screen “alarm” nag</td><td><span class="chip warn">opt-in</span></td><td>Not granted by default since Jan 2025. The user enables it in settings, plus a Play declaration.</td></tr>
+      <tr><td>Bluetooth / driving / geofence cues</td><td><span class="chip ok">yes</span> <span class="chip warn">geofence limited</span></td><td>Bluetooth connect wakes a killed app. Geofences: 100 per app, minutes of latency, Play location rules change on 2027-01-27.</td></tr>
+      <tr><td>Gemini / Assistant actions</td><td><span class="chip bad">not yet</span></td><td>AppFunctions is an experimental preview. The intent API is designed now and wired up later.</td></tr>
+      <tr><td>Sideloading</td><td><span class="chip warn">2027 change</span></td><td>Developer verification goes global in 2027. ADB installs are exempt, and a free Limited Distribution account covers ≤ 20 devices.</td></tr>
+      <tr><td colspan="3"><strong>Ubuntu 26.04 · GNOME 50 · Wayland (your PC)</strong></td></tr>
+      <tr><td>Notifications</td><td><span class="chip ok">yes</span></td><td>Notification portal v1 on your machine: title, body, buttons. No custom sounds (that is v2).</td></tr>
+      <tr><td>Reminders with the app closed</td><td><span class="chip warn">design work</span></td><td>Linux has no scheduled-notification store, and the Flutter notifications plugin can’t schedule there. The design is a resident tray daemon plus a systemd user timer that fires <code>holdfast --fire-due</code>.</td></tr>
+      <tr><td>Global quick-add shortcut</td><td><span class="chip ok">yes</span></td><td>GlobalShortcuts portal (GNOME 48+). You approve the binding once. A <code>.desktop</code> AppID is required. Fallback: a GNOME custom shortcut running the CLI.</td></tr>
+      <tr><td>Tray icon</td><td><span class="chip warn">best-effort</span></td><td>Works through the Ubuntu AppIndicators extension (active on your machine). An open GNOME 50 bug drops some icons, so the tray is never the only entry point.</td></tr>
+      <tr><td>X11 hotkey libraries</td><td><span class="chip bad">no</span></td><td>Ubuntu 26.04 is Wayland-only.</td></tr>
+      <tr><td colspan="3"><strong>Calendars</strong></td></tr>
+      <tr><td>Google</td><td><span class="chip ok">events two-way</span> <span class="chip bad">timed tasks no</span></td><td>Calendar API v3, plus webhooks as an accelerator. The Tasks API is date-only. Personal use (&lt; 100 users) needs no verification, but test-mode refresh tokens expire after 7 days (Spike S4).</td></tr>
+      <tr><td>Microsoft 365 / Outlook</td><td><span class="chip ok">events + To Do two-way</span></td><td>Graph delta + subscriptions (renewed every few days). To Do tasks carry reminders and recurrence.</td></tr>
+      <tr><td>Nextcloud / CalDAV</td><td><span class="chip ok">events + tasks</span></td><td>VTODO with due date, recurrence and alarms. App password.</td></tr>
+      <tr><td>iCloud</td><td><span class="chip ok">events</span> <span class="chip bad">Reminders no</span></td><td>Events through CalDAV with an app-specific password. Reminders left CalDAV in iOS 13 and can’t be reached from Android or Linux.</td></tr>
+      <tr><td colspan="3"><strong>Later platforms</strong></td></tr>
+      <tr><td>iOS</td><td><span class="chip warn">yes, with limits</span></td><td>64 pending notifications per app (rolling window), AlarmKit for must-not-miss alerts (iOS 26+), widgets and Siri via WidgetKit and App Intents. Needs a Mac and the $99/yr developer account.</td></tr>
+      <tr><td>Windows · macOS</td><td><span class="chip ok">yes</span></td><td>Scheduled toasts on Windows; signed bundle for macOS notifications.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 06 FRAMEWORK -->
+<section id="framework">
+  <div class="eyebrow">Framework decision · for you to validate</div>
+  <h2>Flutter, with native Kotlin where it counts. Closer than you might expect.</h2>
+  <p>Five options were scored 1–5 on ten criteria and weighted for your situation. Android depth, Linux desktop and alarm reliability count ×3, widgets, sync and dev speed ×2, the rest ×1. The verifiers corrected two scores upward, for KMP’s Linux tray and Expo’s Android widgets.</p>
+  <div class="bars" role="img" aria-label="Weighted framework scores out of 95: Flutter plus Kotlin module 85.5, KMP plus Compose 81, pure Flutter 79, React Native Expo 62, Tauri 2 43">
+    <div class="bar win"><span><strong>Flutter + Kotlin module</strong></span><div class="track"><div class="fill" style="width:90%"></div></div><span class="v">85.5</span></div>
+    <div class="bar"><span>KMP + Compose Multiplatform</span><div class="track"><div class="fill" style="width:85.26%"></div></div><span class="v">81</span></div>
+    <div class="bar"><span>Flutter (pure)</span><div class="track"><div class="fill" style="width:83.16%"></div></div><span class="v">79</span></div>
+    <div class="bar"><span>React Native / Expo</span><div class="track"><div class="fill" style="width:65.26%"></div></div><span class="v">62</span></div>
+    <div class="bar"><span>Tauri 2</span><div class="track"><div class="fill" style="width:45.26%"></div></div><span class="v">43</span></div>
+    <div class="axis"><span></span><div><span>0</span><span>24</span><span>48</span><span>71</span><span>95</span></div><span></span></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Criterion (weight)</th><th>Flutter + Kotlin</th><th>KMP + CMP</th><th>Flutter</th><th>RN / Expo</th><th>Tauri 2</th></tr></thead>
+    <tbody>
+      <tr><td>Android deep integration (×3)</td><td class="num">4.5</td><td class="num">5</td><td class="num">4</td><td class="num">4</td><td class="num">2</td></tr>
+      <tr class="hl"><td>Linux GNOME Wayland desktop (×3)</td><td class="num">4</td><td class="num">3</td><td class="num">4</td><td class="num">1</td><td class="num">3</td></tr>
+      <tr><td>Background / alarm reliability (×3)</td><td class="num">5</td><td class="num">5</td><td class="num">4</td><td class="num">3</td><td class="num">1</td></tr>
+      <tr><td>Widgets (×2)</td><td class="num">4</td><td class="num">5</td><td class="num">3</td><td class="num">3</td><td class="num">1</td></tr>
+      <tr class="hl"><td>Local DB + sync on all targets (×2)</td><td class="num">5</td><td class="num">4</td><td class="num">5</td><td class="num">4</td><td class="num">3</td></tr>
+      <tr><td>Dev speed, solo + Claude Code (×2)</td><td class="num">5</td><td class="num">4</td><td class="num">5</td><td class="num">4</td><td class="num">3</td></tr>
+      <tr><td>iOS later, no rewrite (×1)</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">5</td><td class="num">3</td></tr>
+      <tr><td>Ecosystem health (×1)</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">3</td></tr>
+      <tr><td>Performance (×1)</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">3</td></tr>
+      <tr><td>Toolchain fit (×1)</td><td class="num">5</td><td class="num">4</td><td class="num">5</td><td class="num">3</td><td class="num">2</td></tr>
+    </tbody>
+  </table></div>
+  <div class="two">
+    <div><h3>Why Flutter wins</h3>
+      <ul class="tight">
+        <li><strong>Linux desktop is a day-one platform</strong>, and Flutter’s Linux pieces exist today: <code>hotkey_manager</code> speaks the GlobalShortcuts portal, <code>tray_manager</code> does SNI over D-Bus, and PowerSync supports Flutter Linux. With KMP you would write the D-Bus tray, notification and portal client yourself.</li>
+        <li><strong>The hybrid removes Flutter’s Android weakness.</strong> Widgets are native Glance code in every framework, and the alarm engine is best written in Kotlin anyway.</li>
+        <li><strong>One language end to end</strong> (Dart for UI, domain, DB codegen, sync and even the API server) plus hot reload suits solo work with an AI agent.</li>
+        <li><strong>It’s already in your stack</strong>: Flutter 3.47.9 and FVM 4.3.2 are pinned in <code>/stack/.env</code>.</li>
+      </ul></div>
+    <div><h3>Why it might not, the real risks</h3>
+      <ul class="tight">
+        <li>Several key plugins have a single maintainer (<code>home_widget</code>, <code>receive_sharing_intent</code>); <code>system_tray</code> is abandoned.</li>
+        <li>Linux has no scheduled notifications in the plugin, so you own the scheduler.</li>
+        <li>Desktop multi-window is experimental, so the quick-add popup needs a workaround.</li>
+        <li>Flutter 3.50 (November) deprecates the in-SDK Material library. Start on <code>material_ui</code> from day one.</li>
+        <li><strong>Runner-up:</strong> pick KMP + Compose if Android, Wear and widgets <em>are</em> the product and the Linux desktop is secondary. Tasks.org proves it works.</li>
+        <li><strong>Optional tie-breaker:</strong> a 2-day KMP Linux spike run next to Flutter spike S2.</li>
+      </ul></div>
+  </div>
+  <p class="note">The scores are judgement calls grounded in verified facts. If KMP gets the same “in-repo native module” credit on Linux that Flutter gets on Android, its weighted score rises to about 82.5, still 3 points behind.</p>
+</section>
+
+<!-- 07 ARCHITECTURE -->
+<section id="architecture">
+  <div class="eyebrow">Architecture</div>
+  <h2>Devices own the reminders. The server only syncs and bridges.</h2>
+  <p>The rule that shapes everything: <strong>a reminder must fire with zero network.</strong> Push messages only wake a device so it syncs and re-arms. The app’s own database is the source of truth, and Google, Microsoft and CalDAV are adapters.</p>
+  <div class="arch"><div class="archgrid">
+    <div class="lane">
+      <h4>Devices</h4>
+      <div class="dev"><span class="t">Android app</span>
+        <div class="boxes"><span class="bx">Flutter UI</span><span class="bx">Domain · intent API</span><span class="bx">drift / SQLite</span><span class="bx">upload queue</span></div>
+        <div class="boxes"><span class="bx core">ReminderEngine · setAlarmClock</span><span class="bx k">boot / time / permission receivers</span><span class="bx k">Glance widgets</span><span class="bx k">QS tile · share target</span><span class="bx k">Bluetooth / activity cues</span><span class="bx k">FCM / UnifiedPush wake</span></div>
+      </div>
+      <div class="dev"><span class="t">Ubuntu app</span>
+        <div class="boxes"><span class="bx">Flutter UI (hidden window)</span><span class="bx">same domain + SQLite</span><span class="bx k">tray (SNI)</span><span class="bx k">portal hotkey</span></div>
+        <div class="boxes"><span class="bx core">resident scheduler</span><span class="bx core">systemd user timer → holdfast --fire-due</span><span class="bx k">local MCP server</span><span class="bx k">CLI</span></div>
+      </div>
+      <div class="dev"><span class="t">Later</span><div class="boxes"><span class="bx">iOS: WidgetKit · AlarmKit · App Intents · APNs</span><span class="bx">Windows toasts</span><span class="bx">macOS</span></div></div>
+    </div>
+    <div class="wire"><span>sync stream</span><div class="ln back"></div><div class="ln"></div><span>patches · JWT</span></div>
+    <div class="lane">
+      <h4>Your Docker stack</h4>
+      <div class="dev"><span class="t">Sync core</span><div class="boxes"><span class="bx">Postgres 18 (logical replication)</span><span class="bx">PowerSync Open Edition ≥ 1.27.2</span><span class="bx">Keycloak (OIDC, passkeys)</span></div></div>
+      <div class="dev"><span class="t">App services (Dart · shelf)</span><div class="boxes"><span class="bx">App API: patches, conflict rules</span><span class="bx">Calendar bridge</span><span class="bx">AI proxy (keys, quotas)</span><span class="bx">Push sender</span><span class="bx">MinIO attachments</span></div></div>
+      <div class="dev"><span class="t">Calendar bridge talks to</span><div class="boxes"><span class="bx">Google: syncToken + watch</span><span class="bx">Graph: delta + subscriptions</span><span class="bx">CalDAV polling: Nextcloud, iCloud</span></div></div>
+      <div class="dev"><span class="t">Reachability off-LAN</span><div class="boxes"><span class="bx">Tailscale / Cloudflare Tunnel</span><span class="bx">or a small VPS</span></div></div>
+    </div>
+  </div></div>
+  <div class="legend"><span><span class="bx core">core</span> the reliability core you own</span><span><span class="bx k">native</span> platform shell (Kotlin / Linux)</span><span><span class="bx">shared</span> shared Dart or server component</span></div>
+
+  <h3>How an Android reminder survives everything</h3>
+  <div class="flow">
+    <div><b>Store</b>Reminders and expanded recurrences live in SQLite, not in the OS.</div>
+    <div><b>Arm</b><code>rescheduleAll()</code> arms the next ~48 h (≤ 50 alarms) with <code>setAlarmClock</code>, idempotently.</div>
+    <div><b>Re-arm on everything</b>Boot, app update, time/zone change, permission grant, every app start, every sync.</div>
+    <div><b>Fire + act</b>Notification with Done / Snooze / Tomorrow. The action applies <em>without</em> starting Flutter.</div>
+    <div><b>Escalate + prove</b>No action → re-arm at 5 / 10 / 20 min with varied sound. A self-test logs lateness.</div>
+  </div>
+
+  <div class="two">
+    <div><h3>Data model essentials</h3>
+      <ul class="tight">
+        <li>UUIDv7 IDs minted on the device; soft-delete tombstones; a server-bumped <code>version</code>.</li>
+        <li><code>tasks</code> carry an RFC 5545 RRULE plus a “repeat after completion” mode. Completing one instance writes an override row and never mutates the series.</li>
+        <li><code>moments</code> hold the if-then cues; <code>reminders</code> map 1:1 to VALARM.</li>
+        <li><code>reminder_deliveries</code> gives cross-device dedupe and the late-fire log.</li>
+        <li>Wall-clock times are stored as local time + IANA zone (never UTC), so DST and travel behave. Tests cover Paris, New York and Lord Howe (a 30-minute DST shift).</li>
+      </ul></div>
+    <div><h3>Sync, AI and privacy</h3>
+      <ul class="tight">
+        <li>Field-level last-writer-wins, with domain rules: completion beats a concurrent edit, delete beats edits.</li>
+        <li>Exit ramp if PowerSync changes: your data is in your Postgres and the client is plain SQLite. Fallbacks are sqlite-sync or a hand-rolled outbox (2–4 weeks).</li>
+        <li>AI goes deterministic grammar first, then on-device Gemini Nano, then Claude Haiku 5.5 through your proxy, always shown as a preview before saving.</li>
+        <li>Optional per-project E2EE (libsodium). Encrypted projects skip the calendar bridge and server AI, and the UI says so.</li>
+        <li>The local MCP server confirms destructive tools and keeps an audit log, which guards against prompt-injected agent actions.</li>
+      </ul></div>
+  </div>
+</section>
+
+<!-- 08 STACK -->
+<section id="stack">
+  <div class="eyebrow">Tech stack</div>
+  <h2>Every component, version-checked on 1 November 2026</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Component</th><th>Choice</th><th>Version</th><th>Alternative</th></tr></thead>
+    <tbody>
+      <tr><td>UI framework</td><td>Flutter + <code>material_ui</code></td><td class="mono">3.47.9 → 3.50</td><td>KMP + Compose 1.12.2</td></tr>
+      <tr><td>Android toolchain</td><td>AGP / KGP / Gradle / Java; target SDK 36, min 24</td><td class="mono">9.1 / 2.4 / 9.3.1 / 17</td><td>—</td></tr>
+      <tr><td>Local DB</td><td>drift (SQLite via <code>package:sqlite3</code> build hooks)</td><td class="mono">2.35.3</td><td>—</td></tr>
+      <tr><td>Sync</td><td>PowerSync Dart SDK + Open Edition service (self-hosted)</td><td class="mono">2.5.0 · ≥ 1.27.2</td><td>sqlite_sync 1.2.0 · PowerSync Cloud</td></tr>
+      <tr><td>Server DB · auth</td><td>Postgres 18 · Keycloak (both already in your stack)</td><td class="mono">18.x · 26.4+</td><td>Supabase</td></tr>
+      <tr><td>Server services</td><td>Dart <code>shelf</code>: App API, calendar bridge, AI proxy</td><td class="mono">—</td><td>Kotlin Ktor</td></tr>
+      <tr><td>Android alarms</td><td>Own Kotlin <code>ReminderEngine</code> on <code>setAlarmClock</code></td><td class="mono">API 36</td><td>android_alarm_manager_plus</td></tr>
+      <tr><td>Notifications (display)</td><td>flutter_local_notifications (pinned; 23.0 in dev)</td><td class="mono">22.3.3</td><td>Own native code</td></tr>
+      <tr><td>Widgets</td><td>Jetpack Glance (in-repo Kotlin) + <code>home_widget</code> bridge</td><td class="mono">1.2.0 · 0.10.0</td><td>MethodChannel</td></tr>
+      <tr><td>Linux tray · hotkey</td><td><code>tray_manager</code> · <code>hotkey_manager</code> (not <code>system_tray</code>, abandoned)</td><td class="mono">0.8.2 · 0.3.0</td><td>GNOME custom shortcut + CLI</td></tr>
+      <tr><td>Background sync</td><td>workmanager (sync only, never timing)</td><td class="mono">0.10.10</td><td>Native WorkManager</td></tr>
+      <tr><td>Recurrence · time zones</td><td>Wrapped <code>rrule</code> + conformance corpus · bundled tzdata</td><td class="mono">0.2.18</td><td>Own expander</td></tr>
+      <tr><td>NL parser</td><td>Own FR + EN grammar (chrono-inspired)</td><td class="mono">—</td><td>chrono (JS) as reference</td></tr>
+      <tr><td>Crypto</td><td><code>sodium</code> (XChaCha20-Poly1305, X25519, Argon2id)</td><td class="mono">4.1.2</td><td>cryptography</td></tr>
+      <tr><td>Push</td><td>FCM + UnifiedPush (wake-for-sync only)</td><td class="mono">— · 6.2.0</td><td>Polling</td></tr>
+      <tr><td>AI</td><td>Claude Haiku 5.5 default · Sonnet 5.5 for planning · Gemini Nano on-device</td><td class="mono">$0.10/$0.50 per Mtok</td><td>gpt-6-luna · Gemini 3.5 Flash-Lite</td></tr>
+      <tr><td>Agent interface</td><td>MCP server on spec 2026-07-28</td><td class="mono">—</td><td>TypeScript sidecar</td></tr>
+      <tr><td>CI · packaging</td><td>GitHub Actions (public repo) · <code>.deb</code> → Flatpak · APK via ADB → Play</td><td class="mono">—</td><td>GitLab CI · AppImage</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Avoid list from the deprecation checks: <code>sqlite3_flutter_libs</code> and <code>powersync_flutter_libs</code> (end of life), <code>system_tray</code> (abandoned), <code>glance-wear-tiles</code>, Graph <code>baseTask</code>, MCP’s HTTP+SSE transport and Dynamic Client Registration, Gemini 2.5 Flash-Lite, and MediaPipe LLM Inference (maintenance-only; use LiteRT-LM). A CI lint will ban the EOL packages, because AI-generated code tends to reintroduce them.</p>
+</section>
+
+<!-- 09 EFFORT -->
+<section id="effort">
+  <div class="eyebrow">Effort and time frame</div>
+  <h2>~2,115 focused hours to a public product. The MVP comes first, at ~600.</h2>
+  <p>This assumes one developer with Claude Code writing most of the boilerplate. Hours are hands-on time including tests. Bars show likely cumulative calendar time; the faint line is the pessimistic tail. Switch the pace:</p>
+  <div class="toggle" role="group" aria-label="Weekly pace">
+    <button type="button" data-pace="17.5" aria-pressed="true">Side project · 17.5 h/wk</button>
+    <button type="button" data-pace="35" aria-pressed="false">Full-time · 35 h/wk</button>
+  </div>
+  <div class="gantt" id="gantt" aria-live="polite"></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Phase</th><th>Biggest modules (likely hours)</th><th class="num">Opt h</th><th class="num">Likely h</th><th class="num">Pess h</th></tr></thead>
+    <tbody>
+      <tr><td>0 · Setup + spikes</td><td>Repo, CI, Docker dev env, 5 spikes</td><td class="num">40</td><td class="num">60</td><td class="num">90</td></tr>
+      <tr class="hl"><td>1 · Personal MVP</td><td>Core domain + UI 100 · Android ReminderEngine 80 · NL parser 70 · Linux shell 70 · sync 65 · Android surfaces 60 · recurrence 45 · MCP 25 · hardening 25</td><td class="num">360</td><td class="num">540</td><td class="num">870</td></tr>
+      <tr><td>2 · Daily driver + calendars</td><td>Google + Graph 100 · CalDAV 85 · polish/voice/import 90 · Moments v1 60 · nag 45 · push 30</td><td class="num">280</td><td class="num">410</td><td class="num">620</td></tr>
+      <tr><td>3 · AI &amp; context</td><td>Auto time-blocking 115 · calibration + reviews 90 · AI proxy + brain dump 65 · geofences 60 · remote MCP 60 · adaptive snooze 55</td><td class="num">300</td><td class="num">445</td><td class="num">660</td></tr>
+      <tr><td>4 · Product readiness</td><td>Accounts, sharing, E2EE 190 · iOS 170 · billing/ops 110 · Windows + macOS 110 · store + compliance 80</td><td class="num">440</td><td class="num">660</td><td class="num">1,010</td></tr>
+      <tr><td><strong>Total</strong></td><td></td><td class="num"><strong>1,420</strong></td><td class="num"><strong>2,115</strong></td><td class="num"><strong>3,250</strong></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">The biggest lever is scope discipline in Phase 1. A first useful build (Android + Ubuntu, local only, reminders working) arrives at about 180 hours, roughly 10 weeks on the side, so you can live in it early. Moving the systemd helper, MCP and export into Phase 2 would trim another 60–80 hours from the MVP. Debugging OEM-specific reminder issues drives the pessimistic tail.</p>
+</section>
+
+<!-- 10 ROADMAP -->
+<section id="roadmap">
+  <div class="eyebrow">Roadmap</div>
+  <h2>Five phases, each with a hard exit test</h2>
+  <div class="phases">
+    <div class="phase"><div class="when"><b>Phase 0</b><span>≈ 60 h<br>3–4 wk side<br>2 wk full-time</span></div><div class="body">
+      <h3>Setup + five de-risking spikes</h3>
+      <p>Public repo, CI building an Android APK and a Linux <code>.deb</code>, and a dev compose stack (Postgres logical, PowerSync, Keycloak). Then prove the five riskiest assumptions before writing product code:</p>
+      <div class="tbl"><table><thead><tr><th>Spike</th><th>Pass criterion</th></tr></thead><tbody>
+        <tr><td><strong>S1</strong> Android exact alarm + Glance widget from Flutter</td><td>Fires within 5 s after a reboot, a swipe-away, forced Doze, the <strong>Restricted bucket</strong>, a permission revoke and re-grant, and a timezone change. A widget checkbox reflects in the app.</td></tr>
+        <tr><td><strong>S2</strong> GNOME 50 Wayland desktop shell</td><td>Hotkey opens quick-add in &lt; 300 ms. Tray visible after re-login. A reminder fires with the app quit and after suspend/resume.</td></tr>
+        <tr><td><strong>S3</strong> PowerSync on Flutter Linux + Android</td><td>Two devices converge after 24 h offline. The CI build is green.</td></tr>
+        <tr><td><strong>S4</strong> Google OAuth personal mode</td><td>Refresh token still works on day 8. Scope classes recorded.</td></tr>
+        <tr><td><strong>S5</strong> Recurrence + timezone correctness</td><td>≥ 95% of an RFC 5545 test corpus passes; DST tests pass for Paris, New York and Lord Howe.</td></tr>
+      </tbody></table></div>
+      <p class="muted">Exit: all five pass, or a documented fallback is accepted. Switch to KMP here if S1 or S2 reveals a blocker.</p>
+    </div></div>
+    <div class="phase p1"><div class="when"><b>Phase 1</b><span>≈ 540 h<br>~31 wk side<br>~15.5 wk full-time</span></div><div class="body">
+      <h3>Personal MVP on Android + Ubuntu</h3>
+      <p>Goal: you stop using any other task app. Tasks, projects, tags, sub-tasks; FR + EN quick-add; recurrence; exact reminders with actions and a self-test; Glance widget, QS tile, share target, shortcuts; Ubuntu tray, hotkey, reminders with the app closed, CLI; phone ↔ PC sync; local MCP; JSON/ICS export.</p>
+      <p class="muted">Exit: 30 consecutive days of daily use · zero missed reminders in the delivery log, p95 lateness &lt; 60 s · conflict-free sync across 2 devices with offline periods · Claude Code creates and completes tasks over MCP.</p>
+    </div></div>
+    <div class="phase"><div class="when"><b>Phase 2</b><span>≈ 410 h<br>~23 wk side<br>~12 wk full-time</span></div><div class="body">
+      <h3>Daily-driver polish + calendar sync</h3>
+      <p>CalDAV (Nextcloud tasks and events, iCloud events); Google Calendar and Microsoft (events + To Do) two-way through the bridge; a conflicts screen; nag-until-done with the full-screen tier; Moments v1 (Bluetooth, driving, PC login); push wake; focus-timer Live Update; voice capture; attachments; Todoist/TickTick import.</p>
+      <p class="muted">Exit: 2 weeks with every connected calendar round-tripping cleanly · subscriptions auto-renewing for 30 days · at least 3 Moment types used daily.</p>
+    </div></div>
+    <div class="phase"><div class="when"><b>Phase 3</b><span>≈ 445 h<br>~25 wk side<br>~13 wk full-time</span></div><div class="body">
+      <h3>AI &amp; context: the Honest Day</h3>
+      <p>AI proxy with quotas; brain dump and breakdown with preview diffs; duration calibration; morning, shutdown and weekly reviews; auto time-blocking with re-plan; adaptive snooze; geofences; remote MCP.</p>
+      <p class="muted">Exit: the proposed day is accepted with ≤ 2 edits on most days · AI cost below $1/month for you · estimate error converging.</p>
+    </div></div>
+    <div class="phase"><div class="when"><b>Phase 4</b><span>≈ 660 h<br>~38 wk side<br>~19 wk full-time</span></div><div class="body">
+      <h3>Product readiness</h3>
+      <p>Multi-user accounts, sharing, per-project E2EE; iOS (Swift widget, AlarmKit, App Intents); Windows and macOS; Google sensitive-scope verification; Microsoft publisher verification; Play closed test (12 testers for 14 days) and production; Apple Developer Program; Flathub or Snap; billing, status page, backups.</p>
+      <p class="muted">Exit: passes store reviews · 100+ beta users at &gt; 99.5% crash-free · the self-test reports reliability across the top OEMs.</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- 11 RISKS -->
+<section id="risks">
+  <div class="eyebrow">Risks register</div>
+  <h2>The ones that could sink it, and the plan for each</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Missed or late Android reminders (OEM killers, Restricted bucket)</td><td><span class="chip bad">high</span></td><td><span class="chip bad">critical</span></td><td>Kotlin <code>setAlarmClock</code> engine, re-arm on everything, self-test + late-fire log, OEM deep links; Spike S1</td></tr>
+      <tr><td>Exact-alarm permission denied or revoked (a revoke kills the app silently)</td><td><span class="chip bad">high</span></td><td><span class="chip bad">high</span></td><td>Onboarding, re-arm on every start, inexact fallback + “tap to fix” banner</td></tr>
+      <tr><td>Scope creep and side-project fatigue (2+ years to product)</td><td><span class="chip bad">high</span></td><td><span class="chip bad">high</span></td><td>Hard Phase 1 exit criteria; first useful build at ~180 h; Phase 4 only once Phase 2 is your daily driver</td></tr>
+      <tr><td>Linux reminders missed when the app is quit or after suspend</td><td><span class="chip warn">medium</span></td><td><span class="chip bad">high</span></td><td>systemd-user helper + resume-from-suspend hook</td></tr>
+      <tr><td>Recurrence/timezone bugs corrupt calendar series</td><td><span class="chip warn">medium</span></td><td><span class="chip bad">high</span></td><td>Conformance corpus, DST tests, never push a lossy RRULE edit</td></tr>
+      <tr><td>AI key leaks from the public repo or APK</td><td><span class="chip warn">medium</span></td><td><span class="chip bad">high</span></td><td>Server-side proxy with per-user auth and quotas; secret scanning in CI</td></tr>
+      <tr><td>Google 7-day refresh tokens / verification friction</td><td><span class="chip bad">high</span></td><td><span class="chip warn">medium</span></td><td>Spike S4; CalDAV first; verification budgeted in Phase 4</td></tr>
+      <tr><td>PowerSync licence, pricing or storage changes (FSL licence; Postgres storage on legacy format)</td><td><span class="chip warn">medium</span></td><td><span class="chip warn">medium</span></td><td>Postgres-centric data; sqlite-sync or own outbox as exit ramps</td></tr>
+      <tr><td>Wayland hotkey refused · GNOME tray icons dropped</td><td><span class="chip warn">medium</span></td><td><span class="chip warn">medium</span></td><td><code>.desktop</code> AppID; custom-shortcut + CLI fallback; the tray is never the only entry point</td></tr>
+      <tr><td>Single-maintainer Flutter plugins abandoned</td><td><span class="chip warn">medium</span></td><td><span class="chip warn">medium</span></td><td>Thin wrappers ready to fork; native code on the critical paths</td></tr>
+      <tr><td>Competitors close the gap (Tasks.org desktop, Super Productivity)</td><td><span class="chip warn">medium</span></td><td><span class="chip warn">medium</span></td><td>Lean on reliability, Moments and GNOME depth; open source as a community moat</td></tr>
+      <tr><td>Android developer verification hits sideloading in 2027</td><td><span class="chip warn">certain</span></td><td><span class="chip ok">low</span></td><td>ADB installs are exempt; free Limited Distribution account now</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 12 COSTS -->
+<section id="costs">
+  <div class="eyebrow">Costs</div>
+  <h2>Close to free for you. AI is the only cost that grows with users.</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Item</th><th>Just you</th><th>1k users</th><th>10k users</th></tr></thead>
+    <tbody>
+      <tr><td>Google Play developer account</td><td class="num">$25 once (optional)</td><td class="num">$25 once</td><td class="num">$25 once</td></tr>
+      <tr><td>Apple Developer Program</td><td class="num">$0</td><td class="num">$99/yr</td><td class="num">$99/yr</td></tr>
+      <tr><td>Sync + backend</td><td class="num">$0 self-hosted (+ $5–10/mo VPS optional)</td><td class="num">$75–100/mo hosted · $20–40 self-host</td><td class="num">$105–150/mo + compute</td></tr>
+      <tr><td>Push (FCM)</td><td class="num">$0</td><td class="num">$0</td><td class="num">$0</td></tr>
+      <tr><td>AI (Haiku default, Sonnet planning)</td><td class="num">&lt; $1/mo</td><td class="num">$70 Haiku-only · $520 mix</td><td class="num">$700 · $5,200 mix</td></tr>
+      <tr><td>Google / Microsoft verification</td><td class="num">$0 (personal is exempt)</td><td class="num">$0 fee, time only</td><td class="num">$0</td></tr>
+      <tr><td>CI (public repo)</td><td class="num">$0</td><td class="num">$0 (+ macOS runners for iOS)</td><td class="num">$0</td></tr>
+      <tr class="hl"><td><strong>Run rate</strong></td><td class="num"><strong>≈ $0–10/mo</strong></td><td class="num"><strong>≈ $150–650/mo</strong></td><td class="num"><strong>≈ $850–5,500/mo</strong></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Monetisation if you go public later: free and open source for local use, plus an optional “Sync &amp; AI” subscription at about €3–4/month (€30/year). That undercuts TickTick ($49.99/yr) and Todoist ($60/yr). Play takes 10% + 5% on subscriptions in the EEA but 20–25% + 5% on one-time purchases, which favours a subscription. AI planning is metered inside it.</p>
+</section>
+
+<!-- 13 DECISIONS -->
+<section id="decide">
+  <div class="eyebrow">Your decisions</div>
+  <h2>What I need you to validate or change</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>Decision</th><th>Recommendation</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr class="hl"><td>D1</td><td><strong>Framework</strong></td><td>Flutter + in-repo Kotlin module (optional 2-day KMP Linux spike as tie-breaker)</td><td>A close call; Linux desktop depth decides it</td></tr>
+      <tr><td>D2</td><td>Flutter version</td><td>3.47.9 (your <code>.env</code> pin), not the 3.41.9 local image; 3.50 when stable</td><td>3.47 is required for the Android toolchain matrix</td></tr>
+      <tr class="hl"><td>D3</td><td>Product name</td><td>Holdfast (trademark + domain check pending)</td><td>The AppID binds the Wayland hotkey and the Android package, so fix it early</td></tr>
+      <tr><td>D4</td><td>Sync hosting in Phase 1</td><td>Your home Docker stack + Tailscale</td><td>$0; the phone stays usable offline anyway</td></tr>
+      <tr><td>D5</td><td>First calendar to integrate</td><td>The one you live in most. CalDAV is easiest; Google needs Spike S4</td><td>Sets Phase 2 order</td></tr>
+      <tr><td>D6</td><td>Google Tasks</td><td>Ignore; use calendar events for timed items</td><td>Its API can’t carry a time of day</td></tr>
+      <tr><td>D7</td><td>Phase 1 distribution</td><td>ADB / free Limited Distribution APK, no Play yet</td><td>Avoids Play policy review until Phase 4</td></tr>
+      <tr><td>D8</td><td>AI in the personal phase</td><td>Claude Haiku 5.5 with your own key now; proxy at Phase 3</td><td>Cost and privacy</td></tr>
+      <tr><td>D9</td><td>End-to-end encryption</td><td>Schema ready now, feature in Phase 4</td><td>It conflicts with the calendar bridge and server AI</td></tr>
+      <tr class="hl"><td>D10</td><td>Licence of the public repo</td><td>AGPL-3.0 if a hosted product is planned; MIT/Apache if you want maximum reuse</td><td>The repo is public from day one</td></tr>
+      <tr><td>D11</td><td>Linux packaging</td><td><code>.deb</code> for you; Flatpak in Phase 4</td><td>The portal identity differs inside a sandbox</td></tr>
+      <tr><td>D12</td><td>Wear OS</td><td>Notification bridging only until Wear OS 7 widgets</td><td>Effort vs value</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Still unverified, and resolved by the spikes: whether <code>setAlarmClock</code> escapes the Restricted-bucket cap (S1); Google refresh-token lifetime for a production-unverified app and the scope class of <code>calendar.app.created</code> (S4); Linux notification actions in the Flutter plugin and systemd timer semantics (S2); which Dart MCP SDK supports spec 2026-07-28.</p>
+</section>
+
+<!-- 14 SOURCES -->
+<section id="sources">
+  <div class="eyebrow">Sources</div>
+  <h2>352 sources, checked on 1 November 2026</h2>
+  <p class="muted">The full deduplicated list, with a grade on every claim, is in <code>docs/research/exploration.md</code>; the six raw dives and their verification reports are in <code>docs/research/raw/</code>. The key primary sources:</p>
+  <details><summary>Key primary sources</summary>
+    <div class="srcs">
+      <h5>Android &amp; Play</h5>
+      <div>developer.android.com/develop/background-work/services/alarms</div>
+      <div>developer.android.com/about/versions/14/changes/schedule-exact-alarms</div>
+      <div>developer.android.com/topic/performance/power/power-details</div>
+      <div>developer.android.com/develop/background-work/background-tasks/broadcasts/broadcast-exceptions</div>
+      <div>developer.android.com/jetpack/androidx/releases/glance</div>
+      <div>developer.android.com/developer-verification/guides/faq</div>
+      <div>support.google.com/googleplay/android-developer/answer/16558241</div>
+      <div>source.android.com/docs/core/permissions/fsi-limits</div>
+      <div>dontkillmyapp.com</div>
+      <h5>Linux / GNOME</h5>
+      <div>release.gnome.org/48/developers</div>
+      <div>github.com/flatpak/xdg-desktop-portal/blob/main/NEWS.md</div>
+      <div>github.com/ubuntu/gnome-shell-extension-appindicator/issues/628</div>
+      <div>docs.flathub.org/docs/for-app-authors/requirements</div>
+      <h5>Frameworks</h5>
+      <div>flutter.dev/blog/whats-new-in-flutter-3-47</div>
+      <div>pub.dev/packages/flutter_local_notifications</div>
+      <div>pub.dev/packages/hotkey_manager · tray_manager · home_widget</div>
+      <div>kotlinlang.org/docs/multiplatform/compose-desktop-tray.html</div>
+      <div>expo.dev/changelog/sdk-58</div>
+      <div>v2.tauri.app/plugin</div>
+      <h5>Sync &amp; backend</h5>
+      <div>docs.powersync.com/resources/supported-platforms</div>
+      <div>docs.powersync.com/sync/advanced/storage-version-4</div>
+      <div>www.powersync.com/pricing</div>
+      <div>electric.ax/docs/guides/writes</div>
+      <h5>Calendars</h5>
+      <div>developers.google.com/workspace/tasks/reference/rest/v1/tasks</div>
+      <div>developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification</div>
+      <div>learn.microsoft.com/en-us/graph/api/resources/todotask</div>
+      <div>support.apple.com/en-us/102654</div>
+      <h5>AI, MCP, science</h5>
+      <div>platform.claude.com/docs/en/about-claude/pricing</div>
+      <div>modelcontextprotocol.io/specification/2026-07-28/changelog</div>
+      <div>developers.google.com/ml-kit/genai</div>
+      <div>kops.uni-konstanz.de/handle/123456789/69905 (implementation intentions)</div>
+      <div>discovery.ucl.ac.uk/id/eprint/1468224 (reminders vs habit automaticity)</div>
+    </div>
+  </details>
+</section>
+
+<footer>
+  <span>Research only. No app code has been written. Effort figures are estimates; platform facts were checked against primary sources on 1 Nov 2026 and can change.</span>
+  <span>Repository: github.com/tmessaoudi-official/task-manager</span>
+</footer>
+</main>
+</div>
+
+<script>
+(function(){
+  // feature filter
+  var btns = document.querySelectorAll('.filters button');
+  var rows = document.querySelectorAll('#feat tbody tr');
+  btns.forEach(function(b){ b.addEventListener('click', function(){
+    var f = b.getAttribute('data-f');
+    btns.forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    rows.forEach(function(r){ r.hidden = !(f === 'all' || r.getAttribute('data-t') === f); });
+  }); });
+
+  // effort timeline: likely hours per phase, pessimistic hours per phase
+  var P = [
+    {k:'p0', n:'Phase 0 · spikes', l:60,   p:90},
+    {k:'p1', n:'Phase 1 · MVP',    l:540,  p:870},
+    {k:'p2', n:'Phase 2 · calendars', l:410, p:620},
+    {k:'p3', n:'Phase 3 · AI',     l:445,  p:660},
+    {k:'p4', n:'Phase 4 · product', l:660, p:1010}
+  ];
+  var el = document.getElementById('gantt');
+  function weeksLabel(w){ return w < 9 ? Math.round(w) + ' wk' : (w/4.345).toFixed(w/4.345 < 10 ? 1 : 0) + ' mo'; }
+  function render(pace){
+    var totalPess = P.reduce(function(a,x){return a+x.p;},0) / pace;
+    var max = Math.ceil(totalPess / 26) * 26; // round to half-years of weeks
+    var html = '', start = 0, pstart = 0;
+    P.forEach(function(x){
+      var w = x.l / pace, pw = x.p / pace;
+      var left = start / max * 100, width = w / max * 100;
+      var end = start + w;
+      html += '<div class="grow"><span>' + x.n + '<br><small class="g">' + x.l + ' h · ends ~' + weeksLabel(end) + '</small></span>'
+        + '<div class="gtrack"><div class="gwhisk" style="left:' + (pstart/max*100) + '%;width:' + (pw/max*100) + '%"></div>'
+        + '<div class="gseg ' + x.k + '" style="left:' + left + '%;width:' + width + '%">' + (width > 7 ? weeksLabel(w) : '') + '</div></div></div>';
+      start = end; pstart += pw;
+    });
+    var ticks = '', step = max <= 104 ? 13 : 26;
+    for (var t = 0; t <= max; t += step){ ticks += '<span style="left:' + (t/max*100) + '%">' + (t === 0 ? '0' : (t/52 >= 1 && t % 52 === 0 ? (t/52) + ' yr' : t + ' wk')) + '</span>'; }
+    html += '<div class="gaxis"><span>calendar time from start</span><div class="ticks">' + ticks + '</div></div>';
+    el.innerHTML = html;
+  }
+  var tb = document.querySelectorAll('.toggle button');
+  tb.forEach(function(b){ b.addEventListener('click', function(){
+    tb.forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    render(parseFloat(b.getAttribute('data-pace')));
+  }); });
+  render(17.5);
+})();
+</script>

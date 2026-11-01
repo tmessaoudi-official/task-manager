@@ -1,0 +1,57 @@
+# Adversarial verification of sync-backend.md
+
+*Verified 2026-11-01 against primary sources (pub.dev, GitHub API, PowerSync docs and releases, Android Developers, Google Play policy, Microsoft Learn, Electric docs, InstantDB docs).*
+
+## Verdict summary
+
+The report's core facts hold up. Five corrections and three deprecation findings change details, not the overall recommendation (PowerSync + Postgres + Keycloak + local alarms). The most important correction: since 2026-10-12, Postgres bucket storage leaves a self-hosted user on an older storage format. Self-hosted PowerSync with Postgres storage now runs a "legacy" storage version.
+
+## Claim-by-claim
+
+| # | Claim | Verdict | Correction / note | Source |
+|---|---|---|---|---|
+| 1 | PowerSync Dart 2.5.0, publisher powersync.com, Android/iOS/Linux/macOS/Windows/web (web beta) | **confirmed**, minor nuance | 2.5.0 was released 2026-10-19. pub.dev's "web beta" note refers to ^1.9.0. 2.5.0 is a **breaking change for web**: the shared sync-worker protocol changed, so `dart run powersync:setup_web` must be re-run. The SDK is Apache-2.0. | https://pub.dev/packages/powersync · https://releases.powersync.com/ |
+| 2 | Kotlin SDK bundles the extension for Android + JVM; Apple via SPM; Kotlin v1.14.1 on 2026-07-29 | **partly-wrong** (stale) | Bundling is confirmed. v1.14.1 is dated 2026-07-29T14:44Z, but it is **not the latest**: v1.15.0 (09-02), v1.15.1 (09-07) and **v1.15.2 (2026-09-28)** exist. The README names no Linux/Windows desktop target explicitly. "Linux via JVM" stays **inferred**. | GitHub API `repos/powersync-ja/powersync-kotlin/releases` · https://github.com/powersync-ja/powersync-kotlin |
+| 3 | Open Edition free, source-available; image journeyapps/powersync-service; no dashboard | **confirmed**, plus licence | The licence is **FSL-1.1-ALv2** (Functional Source License: non-compete use restriction, converting to Apache-2.0 later). The report left it unread. The image name is confirmed, and so is the docs line "Dashboard is currently not available when self-hosting". Service **v1.27.2 (2026-10-24)** is a security update (Node 24.22.1, TLS/Brotli CVEs), and self-hosters are told to upgrade. | GitHub API `repos/powersync-ja/powersync-service/license` · https://docs.powersync.com/self-hosting/getting-started · https://releases.powersync.com/ |
+| 4 | PG>=11, wal_level=logical, publication `powersync`, role REPLICATION BYPASSRLS + SELECT; storage MongoDB or Postgres; PG>=14 may share the server; Postgres storage lacks v4 | **confirmed**, consequence understated | All verbatim. **New since 2026-10-12**: Storage Version 4 is **GA and the default from Service v1.27.0** (MongoDB storage only). Postgres storage stays on **v2**, so it misses S3 object-storage offload and incremental reprocessing. Incremental reprocessing also needs a *MongoDB source*, so the Postgres-source design loses it regardless. Every Sync Config change therefore triggers a full reprocess and a client re-sync. That is acceptable at personal scale and a real cost at product scale. Self-hosted v4 requires MongoDB bucket storage. | https://docs.powersync.com/configuration/source-db/setup · https://docs.powersync.com/self-hosting/installation/powersync-service-setup · https://docs.powersync.com/sync/advanced/storage-version-4 · https://releases.powersync.com/ |
+| 5 | Auth: jwks_uri, inline JWKS, supabase: true | **confirmed** | Also `supabase_jwt_secret` (legacy HS256) and `audience`. Asymmetric keys are recommended. | https://docs.powersync.com/self-hosting/installation/powersync-service-setup |
+| 6 | Electric: no write-path sync; official clients TypeScript + Elixir only | **confirmed** | Verbatim "Electric does not do write-path sync". Only the TS and Elixir clients are official. | https://electric.ax/docs/guides/writes · https://electric.ax/docs/guides/client-development |
+| 7 | InstantDB sunsetting, services until 2027-08-31 | **confirmed** | The banner links an essay titled "instant_team_joins_openai" (content not read). | https://www.instantdb.com/docs |
+| 8 | cloud_firestore 7.1.0 no Linux | **confirmed** | Platforms: Android, iOS, macOS, web, Windows. | https://pub.dev/packages/cloud_firestore |
+| 9 | flutter_local_notifications 22.3.3: no Linux scheduling; Android 14 exact alarms; Samsung 500 cap | **confirmed** | Verbatim: "Scheduled/pending notifications is currently not supported due to the lack of a scheduler API". The Samsung 500 cap is "reportedly" (the plugin's wording). **Also note**: 23.0.0-dev.5 is in prerelease, so a major bump is coming. The report omits the full-screen-intent permission (see missing angles). | https://pub.dev/packages/flutter_local_notifications |
+| 10 | USE_EXACT_ALARM restricted to core alarm/timer/calendar; SCHEDULE_EXACT_ALARM denied by default on Android 14+ | **confirmed**, sharpened | The policy examples are "alarm or timer app" and "**calendar app that shows event notifications**". A task/todo app is **not** a listed example, so plan on SCHEDULE_EXACT_ALARM + user grant, which is the report's own risk mitigation. Non-qualifying apps "will be disallowed from publishing on Google Play". Android docs: "no longer being pre-granted to most newly installed apps targeting Android 13 and higher". The permission stays pre-granted on upgrade, is denied after backup/restore, and exact alarms set with `OnAlarmListener` need no permission. No Android 16/17 AlarmManager change was found (search only, so **could-not-check** exhaustively). | https://support.google.com/googleplay/android-developer/answer/16558241 · https://developer.android.com/about/versions/14/changes/schedule-exact-alarms |
+| 11 | Dart rrule 0.2.18 lacks WKST, partial port of rrule.js | **confirmed** | Publisher wanke.dev, last published about 9 months ago. Other limits: no leap seconds, years 0-9999 only, and some RRULEs can't be converted to text. Not marked discontinued. | https://pub.dev/packages/rrule |
+| 12 | Graph: Outlook event 10,080 min (1,440 with resource data); todoTask 4,230 min | **confirmed** | todoTask webhooks work on the global endpoint only (not national clouds). The docs warn that requests beyond the max "will fail" in future. `event` notification latency is listed as "Unknown". | https://learn.microsoft.com/en-us/graph/api/resources/subscription?view=graph-rest-1.0 (updated 2026-09-17) |
+
+### Secondary claims spot-checked
+
+| Claim | Verdict | Note | Source |
+|---|---|---|---|
+| sqlite-sync 1.2.0 (2026-09-28), 1.1.4 (2026-09-21), Apache-2.0, Linux supported | confirmed | The repo LICENSE is Apache-2.0, though pub.dev shows the licence as "unknown". Linux arm64/x64 are listed. The pub.dev page names no backends (the repo does). | GitHub API releases + license · https://pub.dev/packages/sqlite_sync |
+| PowerSync v2 removed `powersync_sqlcipher`; SQLCipher status unknown | **partly-wrong** (the [U] is now resolvable) | v2 moved encryption **into the main package** as `EncryptionOptions`, using **SQLite3MultipleCiphers (sqlite3mc)** rather than SQLCipher. Web encryption needs `setup_web --encryption`. [search summary of the PowerSync v2 announcement; exact API not fetched] | https://releases.powersync.com/announcements/ann_P6AmNl0W84xt8 |
+| Google Calendar push: no auto-renew, HTTPS webhook | confirmed | Needs a valid CA-signed certificate; self-signed is rejected. The max lifetime is not stated on the page. | https://developers.google.com/calendar/api/guides/push |
+| unifiedpush 6.2.0, ~12 months old, optional Linux | confirmed | The platform tag says Android only; Linux comes through `unifiedpush_linux ^1.0.0`. | https://pub.dev/packages/unifiedpush |
+| Replicache maintenance mode | confirmed (secondary) | The replicache.dev homepage text says maintenance mode, but I read it via a search summary and proxy, not a direct fetch. | https://replicache.dev/ |
+| PowerSync pricing (Free 2 GB/500 MB/50 clients, 1-vs-2-week inactivity inconsistency; Pro $49, 30 GB, 10 GB, 1,000 + $30/1,000) | confirmed | Overage $1/GB synced and hosted; default caps 100 GB hosted and 3,000 clients. | https://www.powersync.com/pricing |
+
+## Deprecations found
+
+1. **`sqlite3_flutter_libs` (0.6.0+eol), `sqlcipher_flutter_libs` (0.7.0+eol) and `powersync_flutter_libs` (0.5.0+eol) are EOL.** SQLite now loads via `package:sqlite3` 3.x **build hooks**. Any drift/PowerSync tutorial or AI-generated code that adds these packages is stale. https://pub.dev/packages/sqlcipher_flutter_libs · https://pub.dev/packages/powersync_flutter_libs
+2. **PowerSync SQLCipher → SQLite3MultipleCiphers** (`powersync_sqlcipher` removed in v2). This changes the local-DB-encryption row in report §7.
+3. **PowerSync storage v2 is now the legacy format** for Postgres bucket storage (v4 GA and default for MongoDB since Service v1.27.0, 2026-10-12).
+4. **Graph `baseTask` subscriptions are deprecated** (use `todoTask`). The report already uses todoTask.
+5. A PowerSync Service upgrade to **≥1.27.2** is a security requirement for self-hosters.
+
+## Missing angles
+
+- **Replication-slot WAL retention**: if the PowerSync container is down, Postgres keeps WAL for the `powersync` slot and the disk can fill. Set `max_slot_wal_keep_size` and monitor it. [inferred from Postgres logical-replication behaviour; PowerSync docs not checked for this]
+- **Offline token expiry**: PowerSync needs a valid JWT to resume sync. A phone offline past the Keycloak access/refresh-token lifetime needs re-login unless `offline_access` tokens are used, and Keycloak must be reachable off-LAN for refresh. [inferred]
+- **FSL licence implications** for the "later public product" goal: the self-hosted service can't be offered as a competing sync service; client SDKs are Apache-2.0. [verified licence name; implications inferred]
+- **Postgres storage ⇒ full re-sync on every Sync Config change** (no incremental reprocessing). A product-scale self-host should plan MongoDB bucket storage or PowerSync Cloud.
+- **USE_FULL_SCREEN_INTENT** (alarm-style reminders on the lock screen) is auto-granted on Android 14+ only to alarm/calling apps. Task apps must request it from the user, with a Play Console declaration. https://support.google.com/googleplay/android-developer/answer/16558241
+- **Task app ≠ USE_EXACT_ALARM-eligible**: a calendar-integrated framing ("calendar app that shows event notifications") may qualify, but Play decides. Design the SCHEDULE_EXACT_ALARM grant flow and the `canScheduleExactAlarms()` checks from day one.
+- **Linux desktop specifics**: GNOME has no native tray (Ubuntu ships the AppIndicator extension). Wayland global shortcuts need the xdg-desktop-portal GlobalShortcuts portal. Suspend/resume timer skew, and systemd user timers need `Persistent=true`/`WakeSystem`. [unverified: not fetched in this pass]
+- **PowerSync on Flutter Linux needs the native extension built via hooks**. Check CI (GitHub Actions Linux runners) builds with Flutter 3.41.x. [unverified]
+- **Google OAuth "testing" mode refresh tokens expire after 7 days** (the report's [U]). Not re-checked here; it affects the personal Google Calendar bridge. [could-not-check]
+- **Kotlin/KMP desktop path**: no explicit Linux desktop support statement exists for powersync-kotlin. If KMP wins the framework decision, test it on Linux JVM early.
+- **PowerSync DevTools** (2026-10-20, MCP tools for coding agents) is relevant to the solo-dev + Claude Code workflow, but Flutter support is "in progress".
