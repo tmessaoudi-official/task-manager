@@ -29,3 +29,6 @@ local.properties
 # iOS / macOS
 Pods/
 *.xcworkspace/xcuserdata/
+
+# Playwright MCP scratch output
+/.playwright-mcp/

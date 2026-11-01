@@ -138,7 +138,7 @@ ul.tight{margin:0;padding-left:18px;display:grid;gap:6px;max-width:68ch}
 @media (max-width:860px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* effort */
-.toggle{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.toggle{display:inline-flex;justify-self:start;flex-wrap:wrap;border:1px solid var(--line);border-radius:999px;overflow:hidden}
 .toggle button{font:500 13px/1 var(--f-mono);padding:9px 14px;border:0;background:var(--surface);color:var(--fg);cursor:pointer}
 .toggle button[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
 .gantt{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:12px;overflow-x:auto}
@@ -149,7 +149,8 @@ ul.tight{margin:0;padding-left:18px;display:grid;gap:6px;max-width:68ch}
 .gwhisk{position:absolute;top:50%;height:2px;background:var(--fg);opacity:.35}
 .gaxis{display:grid;grid-template-columns:190px minmax(520px,1fr);gap:12px;font:11px var(--f-mono);color:var(--muted)}
 .gaxis .ticks{position:relative;height:16px}
-.gaxis .ticks span{position:absolute;transform:translateX(-50%)}
+.gaxis .ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.gaxis .ticks span:last-child{transform:translateX(-100%)}
 
 /* roadmap */
 .phases{display:grid;gap:14px}
@@ -493,7 +494,7 @@ footer{padding-block:32px;border-top:1px solid var(--line);font-size:13px;color:
 <section id="effort">
   <div class="eyebrow">Effort and time frame</div>
   <h2>~2,115 focused hours to a public product. The MVP comes first, at ~600.</h2>
-  <p>This assumes one developer with Claude Code writing most of the boilerplate. Hours are hands-on time including tests. Bars show likely cumulative calendar time; the faint line is the pessimistic tail. Switch the pace:</p>
+  <p>This assumes one developer with Claude Code writing most of the boilerplate. Hours are hands-on time including tests. Bars show likely calendar time, phase after phase; the faint line under each bar shows where that phase would sit if every phase ran pessimistic. Switch the pace:</p>
   <div class="toggle" role="group" aria-label="Weekly pace">
     <button type="button" data-pace="17.5" aria-pressed="true">Side project · 17.5 h/wk</button>
     <button type="button" data-pace="35" aria-pressed="false">Full-time · 35 h/wk</button>
@@ -605,16 +606,18 @@ footer{padding-block:32px;border-top:1px solid var(--line);font-size:13px;color:
     <tbody>
       <tr class="hl"><td>D1</td><td><strong>Framework</strong></td><td>Flutter + in-repo Kotlin module (optional 2-day KMP Linux spike as tie-breaker)</td><td>A close call; Linux desktop depth decides it</td></tr>
       <tr><td>D2</td><td>Flutter version</td><td>3.47.9 (your <code>.env</code> pin), not the 3.41.9 local image; 3.50 when stable</td><td>3.47 is required for the Android toolchain matrix</td></tr>
-      <tr class="hl"><td>D3</td><td>Product name</td><td>Holdfast (trademark + domain check pending)</td><td>The AppID binds the Wayland hotkey and the Android package, so fix it early</td></tr>
-      <tr><td>D4</td><td>Sync hosting in Phase 1</td><td>Your home Docker stack + Tailscale</td><td>$0; the phone stays usable offline anyway</td></tr>
-      <tr><td>D5</td><td>First calendar to integrate</td><td>The one you live in most. CalDAV is easiest; Google needs Spike S4</td><td>Sets Phase 2 order</td></tr>
-      <tr><td>D6</td><td>Google Tasks</td><td>Ignore; use calendar events for timed items</td><td>Its API can’t carry a time of day</td></tr>
-      <tr><td>D7</td><td>Phase 1 distribution</td><td>ADB / free Limited Distribution APK, no Play yet</td><td>Avoids Play policy review until Phase 4</td></tr>
+      <tr><td>D3</td><td>Sync hosting in Phase 1</td><td>Your home Docker stack + Tailscale</td><td>$0; the phone stays usable offline anyway</td></tr>
+      <tr><td>D4</td><td>First calendar to integrate</td><td>The one you live in most. CalDAV is easiest; Google needs Spike S4</td><td>Sets Phase 2 order</td></tr>
+      <tr><td>D5</td><td>Google Tasks</td><td>Ignore; use calendar events for timed items</td><td>Its API can’t carry a time of day</td></tr>
+      <tr><td>D6</td><td>Phase 1 distribution</td><td>ADB / free Limited Distribution APK, no Play yet</td><td>Avoids Play policy review until Phase 4</td></tr>
+      <tr><td>D7</td><td>Declare <code>USE_EXACT_ALARM</code> at launch</td><td>No; <code>SCHEDULE_EXACT_ALARM</code> only</td><td>A to-do app is not a listed use case: policy risk</td></tr>
       <tr><td>D8</td><td>AI in the personal phase</td><td>Claude Haiku 5.5 with your own key now; proxy at Phase 3</td><td>Cost and privacy</td></tr>
       <tr><td>D9</td><td>End-to-end encryption</td><td>Schema ready now, feature in Phase 4</td><td>It conflicts with the calendar bridge and server AI</td></tr>
-      <tr class="hl"><td>D10</td><td>Licence of the public repo</td><td>AGPL-3.0 if a hosted product is planned; MIT/Apache if you want maximum reuse</td><td>The repo is public from day one</td></tr>
-      <tr><td>D11</td><td>Linux packaging</td><td><code>.deb</code> for you; Flatpak in Phase 4</td><td>The portal identity differs inside a sandbox</td></tr>
-      <tr><td>D12</td><td>Wear OS</td><td>Notification bridging only until Wear OS 7 widgets</td><td>Effort vs value</td></tr>
+      <tr class="hl"><td>D10</td><td>Product name</td><td>Holdfast (trademark + domain check pending)</td><td>The AppID binds the Wayland hotkey and the Android package, so fix it early</td></tr>
+      <tr class="hl"><td>D11</td><td>Licence of the public repo</td><td>AGPL-3.0 if a hosted product is planned; MIT/Apache if you want maximum reuse</td><td>The repo is public from day one</td></tr>
+      <tr><td>D12</td><td>Monetisation model</td><td>Free/OSS + “Sync &amp; AI” subscription</td><td>Play’s EEA fee structure favours subscriptions</td></tr>
+      <tr><td>D13</td><td>Linux packaging</td><td><code>.deb</code> for you; Flatpak in Phase 4</td><td>The portal identity differs inside a sandbox</td></tr>
+      <tr><td>D14</td><td>Wear OS</td><td>Notification bridging only until Wear OS 7 widgets</td><td>Effort vs value</td></tr>
     </tbody>
   </table></div>
   <p class="note">Still unverified, and resolved by the spikes: whether <code>setAlarmClock</code> escapes the Restricted-bucket cap (S1); Google refresh-token lifetime for a production-unverified app and the scope class of <code>calendar.app.created</code> (S4); Linux notification actions in the Flutter plugin and systemd timer semantics (S2); which Dart MCP SDK supports spec 2026-07-28.</p>

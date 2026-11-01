@@ -22,13 +22,14 @@
 <!-- progress-block v1 -->
 | # | Step | Size | State | Evidence | Files |
 |---|------|------|-------|----------|-------|
-| 1 | Repo setup + public remote | S | done | - | README.md, .gitignore |
-| 2 | Research workflow (research → verify → synthesize) | L | done | - | - |
-| 3 | Report: Markdown + Artifact page | M | done | - | docs/research/** |
-| 4 | 6C certify, commit, push, present | S | todo | - | - |
+| 1 | Repo setup + public remote | S | done | 0946d99 | README.md, .gitignore |
+| 2 | Research workflow (research → verify → synthesize) | L | done | 0946d99 | - |
+| 3 | Report: Markdown + Artifact page | M | done | 0946d99 | docs/research/** |
+| 4 | 6C certify, commit, push, present | S | done | - | - |
 <!-- /progress-block -->
 ### Blocked
 ### Needs input
+- User to validate D1 (framework), D10 (name), D11 (licence) and the rest of the decision table in docs/research/exploration.md §12.
 ### Needs research
 ### Fragile
 ### Known issues
