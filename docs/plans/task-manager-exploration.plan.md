@@ -14,6 +14,7 @@
 - [2026-11-01 23:17] AGREED: D1 framework validated by user: Flutter 3.47.9 + in-repo Kotlin Android module (KMP runner-up not pursued).
 - [2026-11-01 23:17] AGREED: D11 licence validated by user: AGPL-3.0 for the repository.
 - [2026-11-01 23:18] AGREED: D10 name: Holdfast acceptable but user objects it does not evoke a task/todo app; requires a verified-unused name - availability research (stores, trademarks, domains, registries) before fixing it.
+- [2026-11-01 23:46] AGREED: D10 name chosen by user: Nagdone (app id app.nagdone; domain nagdone.app). Formal EUIPO/INPI clearance and domain/GitHub-org registration remain the user's manual steps.
 
 ## Formal Plan
 1. Repo setup: git init + local identity/signing (done), README + .gitignore, gh repo create --public, signed initial commit, push.
@@ -32,7 +33,8 @@
 <!-- /progress-block -->
 ### Blocked
 ### Needs input
-- User to validate D1 (framework), D10 (name), D11 (licence) and the rest of the decision table in docs/research/exploration.md §12.
+- D1, D10, D11 decided. Remaining open decisions D2–D9, D12–D14 in docs/research/exploration.md §12 (defaults recommended there).
+- User: register nagdone.app + GitHub org; formal EUIPO/INPI trademark check.
 ### Needs research
 ### Fragile
 ### Known issues

@@ -1,6 +1,6 @@
-# Holdfast (working name)
+# Nagdone
 
-A local-first task, todo and reminder app that never lets a commitment slip. It is built to integrate deeply with daily life: Android phone, Ubuntu desktop, calendars (Google, Microsoft 365, Nextcloud/CalDAV, iCloud), home-screen widgets and notifications.
+A local-first task, todo and reminder app that nags you until it's done. It is built to integrate deeply with daily life: Android phone, Ubuntu desktop, calendars (Google, Microsoft 365, Nextcloud/CalDAV, iCloud), home-screen widgets and notifications.
 
 **Status: research and design only. No app code yet.**
 
@@ -11,6 +11,7 @@ A local-first task, todo and reminder app that never lets a commitment slip. It 
 | [`docs/research/exploration.md`](docs/research/exploration.md) | Full exploration report (vision, competitors, feasibility, framework decision, architecture, stack, effort, roadmap, risks, costs, open decisions, 352 sources). Every load-bearing claim carries an evidence grade. |
 | [`docs/research/exploration.html`](docs/research/exploration.html) | The same report as a designed page. |
 | [`docs/research/raw/`](docs/research/raw/) | The six research dives and their adversarial verification reports. |
+| [`docs/research/naming.md`](docs/research/naming.md) | Name availability research: why **Nagdone** (decision D10). The report itself still uses the earlier working name "Holdfast". |
 | [`docs/plans/task-manager-exploration.plan.md`](docs/plans/task-manager-exploration.plan.md) | Decisions log and plan status. |
 
 ## Proposed stack (pending validation)
