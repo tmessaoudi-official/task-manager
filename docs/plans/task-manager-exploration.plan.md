@@ -11,6 +11,9 @@
 - [2026-11-01 22:25] AGREED: Certification tier — advisor() at 3C/6C gates.
 - [2026-11-01 22:25] AGREED: This directory is its own git repo (master), local identity Takieddine MESSAOUDI <takieddine.messaoudi.official@gmail.com>, signing key 0C537690706EB7F5, commit+tag gpgsign on.
 - [2026-11-01 22:25] AGREED: Remote is a PUBLIC GitHub repo tmessaoudi-official/task-manager (free unlimited CI), SSH, plain push of master.
+- [2026-11-01 23:17] AGREED: D1 framework validated by user: Flutter 3.47.9 + in-repo Kotlin Android module (KMP runner-up not pursued).
+- [2026-11-01 23:17] AGREED: D11 licence validated by user: AGPL-3.0 for the repository.
+- [2026-11-01 23:18] AGREED: D10 name: Holdfast acceptable but user objects it does not evoke a task/todo app; requires a verified-unused name - availability research (stores, trademarks, domains, registries) before fixing it.
 
 ## Formal Plan
 1. Repo setup: git init + local identity/signing (done), README + .gitignore, gh repo create --public, signed initial commit, push.

@@ -19,4 +19,4 @@ Flutter 3.47.9 with an in-repo Kotlin Android module (Glance widgets, AlarmManag
 
 ## Licence
 
-Not chosen yet (decision D11 in the report).
+[GNU AGPL-3.0](LICENSE) (decision D11, validated 2026-11-01).
